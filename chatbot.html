@@ -1,5 +1,7 @@
 A chatbot application. 
 
+Neural Net
+
 Purpose
 Create a well planned chatbot application with context. We will 
 design a framework for planning the bot as well as a conversational model 
@@ -35,11 +37,27 @@ intents are defined. A JSON file is a great tool for this challenge
 
 E.G. JSON file https://github.com/ugik/notebooks/blob/master/intents.json
 
+Three elements will be defined in each conversational intent:
+1. a tag, which will have a unique name
+2. patterns, which are sentence patterns for our neural network text classifier
+3. response, which are comprised of example responses
 
 
 Notebook for Step 1: https://github.com/ugik/notebooks/blob/master/Tensorflow%20chat-bot%20model.ipynb
 
+  A. Import necessary tools and software
+    # things we need for NLP
+    import nltk
+    from nltk.stem.lancaster import LancasterStemmer
+    stemmer = LancasterStemmer()
+    
+    # things we need for Tensorflow
+    import numpy as np
+    import tflearn
+    import tensorflow as tf
+    import random
 
+    
 
 
 
