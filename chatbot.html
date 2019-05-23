@@ -57,7 +57,24 @@ Notebook for Step 1: https://github.com/ugik/notebooks/blob/master/Tensorflow%20
     import tensorflow as tf
     import random
 
+  B. After the intents JSON file is loaded, we can start building organized
+  documents, words and classification classes.
+
+    The lists of documents we crate are simmply sentences
+    with each sentence being a list of stemmed words and each 
+    document associated with an intent (=class)
+
+    Tensorflow cannot process from documents of words,
+    so we will tranform our data furthe into tensors of numbers.
     
+    -----
+    Our data is now shuffled. Tensorflow will use some of this
+    mixed data to test our data to guage accuract for a newly fitted
+    model.
+
+    
+
+
 
 
 
@@ -72,6 +89,8 @@ https://chatbotsmagazine.com/maintaining-context-in-chatbots-2016b6a5b7c6
 
 Designing a chatbot framework
 https://chatbotsmagazine.com/design-framework-for-chatbots-aa27060c4ea3
+
+Class = 
 
 JSON File =  JSON is short for JavaScript Object Notation, and is a way to store information in an organized, easy-to-access manner. 
 In a nutshell, it gives us a human-readable collection of data that we can access in a really logical manner.
