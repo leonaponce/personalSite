@@ -6,7 +6,14 @@ https://zapier.com/blog/how-to-build-chat-bot/
 
 https://medium.com/alex-attia-blog/build-a-first-simple-slack-bot-with-python-5392ef359835
 
+https://medium.com/@gk_/how-chat-bots-work-dfff656a35e2
+
+https://pythonhosted.org/Pyro4/
+
 Neural Net
+context handlers
+stateless service
+stateful
 
 Purpose
 Create a well planned chatbot application with context. We will 
@@ -75,13 +82,142 @@ Notebook for Step 1: https://github.com/ugik/notebooks/blob/master/Tensorflow%20
     
     -----
     Our data is now shuffled. Tensorflow will use some of this
-    mixed data to test our data to guage accuract for a newly fitted
+    mixed data to test our data to guage accuracy for a newly fitted
     model.
 
+    If we look at a single x and y list element, we see "bag of words" arrays, one 
+    for the intent pattern, the other for the intent class.
 
+  C. We are all set to build our model.
 
+    To complete this section of work, we'll save "pickel"
+    our model and documents so the next notebook can use them.
 
+  D. BUILDING THE CHATBOT FRAMEWORK
 
+     We are building a simple state-machine to handle responses,
+     using our intents model (from the previous step) as our classifier.
+     This, in esssence, is what makes a chatbot function.
+
+     After loading the importd, we "unpickle" our mosel and documents
+     and reload our intents file. 
+     ***Note: Our chatbot framework is seperate from our model build-
+     the model does not have to be rebuilt unless the intent pattern change.
+
+     We then load our saved Tensorflow (tflearn framework) model.
+     Notice you forst neeed to define the Tensorflow model structure just as we 
+     did in the previous section.
+
+     We need a way to produce a bag-of-words from user input. This is the same technique
+     as we used earlier to create our training documents.
+
+     We are now ready to build our processor.
+
+     Each sentence passed to response () is classified. Our classifier uses model.predict()
+     and is lightning fast. the probabilities returned by the model
+     are lined-up with our intents definitions to produce a list of potential responses.
+
+     If one or more classifications are above threshold, we see
+     if a tag matches an intent and then process that.
+     We'll treat our classification list as a stack and 
+     pop off the stack looking for a suitable match until we find one, or it's empty.
+
+     Let's look at a classification example, the most likely tag and its probability
+     are returned.
+
+     Notice that ‘is your shop open today?’ is not one of the 
+     patterns for this intent: “patterns”: [“Are you open today?”, 
+     “When do you open today?”, “What are your hours today?”] however the terms ‘open’ 
+     and ‘today’ proved irresistible to our model (they are prominent in the chosen intent).
+     We can now generate a chatbot response from user-input:
+
+     And other context-free responses…
+
+ STEP 4: ADD IN BASIC CONTEXTUALIZATION
+
+     We want to handle a question about renting a moped and ask if the rental is for today. 
+     That clarification question is a simple contextual response. If the user responds ‘today’ 
+     and the context is the rental timeframe then it’s best they call the rental company’s 1–800 #. 
+     This allows for prompt same-day service.
+
+     To achieve this we will add the notion of ‘state’ to our framework. 
+     This is comprised of a data-structure to maintain state and specific 
+     code to manipulate it while processing intents.
+
+     Because the state of our state-machine needs to be easily persisted, restored, copied, etc. 
+     it’s important to keep it all in a data structure such as a dictionary.
+
+     Here’s our response process with basic contextualization:
+
+     Our context state is a dictionary, it will contain state for each user. 
+     We’ll use some unique identified for each user (eg. cell #). 
+     This allows our framework and state-machine to maintain state for multiple users simultaneously.
+
+     # create a data structure to hold user context
+    context = {}
+
+    The context handlers are added within the intent processing flow, shown again below:
+
+        If an intent wants to set context, it can do so:
+
+        {“tag”: “rental”,
+        “patterns”: [“Can we rent a moped?”, “I’d like to rent a moped”, … ],
+        “responses”: [“Are you looking to rent today or later this week?”],
+        “context_set”: “rentalday”
+        }
+        If another intent wants to be contextually linked to a context, it can do that:
+
+        {“tag”: “today”,
+        “patterns”: [“today”],
+        “responses”: [“For rentals today please call 1–800-MYMOPED”, …],
+        “context_filter”: “rentalday”
+        }
+
+    In this way, if a user just typed ‘today’ out of the blue (no context), 
+    our ‘today’ intent won’t be processed. If they enter ‘today’ as a response 
+    to our clarification question (intent tag:‘rental’) then the intent is processed.
+
+        Our context state changed:
+
+    We defined our ‘greeting’ intent to clear context, as is often the case with small-talk. 
+    We add a ‘show_details’ parameter to help us see inside.
+
+    Let’s try the ‘today’ input once again, a few notable things here…
+        
+    First, our response to the context-free ‘today’ was different. 
+    Our classification produced 2 suitable intents, and the ‘opentoday’ was selected because the ‘today’ intent, 
+    while higher probability, was bound to a context that no longer applied. Context matters!
+
+    Consider...
+        That’s right, your chatbot will no longer be happy as a stateless service.
+
+        Unless you want to reconstitute state, reload your model and documents — 
+        with every call to your chatbot framework, you’ll need to make it stateful.
+
+        This isn’t that difficult. You can run a stateful chatbot framework in its 
+        own process and call it using an RPC (remote procedure call) or RMI (remote method invocation), I recommend Pyro.
+
+        The user-interface (client) is typically stateless, eg. HTTP or SMS.
+
+          Your chatbot client will make a Pyro function call, which your stateful service will handle. Voila!
+        
+          Here’s a step-by-step guide to build a Twilio SMS chatbot client, and here’s one for FB Messenger.
+
+    A NOTE ABOUT STATE information
+    All state information must be placed in a data structure such as a dictionary, easily persisted, reloaded, 
+    or copied atomically. Each user’s conversation will carry context which will be carried statefully for that user. 
+    The user ID can be their cell #, a Facebook user ID, or some other unique identifier.
+
+    There are scenarios where a user’s conversational state needs to be copied (by value) and then restored as a result 
+    of intent processing. If your state machine carries state across variables within your framework you will have a 
+    difficult time making this work in real life scenarios.
+      
+    So now you have a chatbot framework, a recipe for making it a stateful service, and a starting-point for adding context. 
+    Most chatbot frameworks in the future will treat context seamlessly.
+
+    Think of creative ways for intents to impact and react to different 
+    context settings. Your users’ context dictionary can contain a wide-variety 
+    of conversation context.
 
 
 Think of something like stripped-down Slack.
